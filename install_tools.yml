@@ -1,0 +1,81 @@
+- name: Install tools on the local machine
+  hosts: localhost
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Install Docker
+      yum:
+        name: docker
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Install Docker Compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: 0755
+
+    - name: Create symbolic link for Docker Compose
+      file:
+        src: /usr/local/bin/docker-compose
+        dest: /usr/bin/docker-compose
+        state: link
+
+    - name: Update system packages
+      yum:
+        name: '*'
+        state: latest
+
+    - name: Install Maven
+      yum:
+        name: maven
+        state: present
+
+    - name: Upgrade AWS CLI to version 2
+      shell: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip -o awscliv2.zip
+        sudo ./aws/install
+      args:
+        executable: /bin/bash
+
+    - name: Install kubectl
+      shell: |
+        curl --silent --location -o /usr/local/bin/kubectl \
+        "https://dl.k8s.io/release/$(curl --silent --location https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x /usr/local/bin/kubectl
+
+    - name: Install eksctl
+      shell: |
+        curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+        mv /tmp/eksctl /usr/local/bin
+
+    - name: Install Jenkins
+      yum:
+        name: jenkins
+        state: present
+
+    - name: Enable Jenkins service
+      service:
+        name: jenkins
+        enabled: yes
+        state: started
+
+    - name: Add jenkins user to the docker group
+      user:
+        name: jenkins
+        groups: docker
+        append: yes
+
+    - name: Display initial admin password for Jenkins
+      command: cat /var/lib/jenkins/secrets/initialAdminPassword
+      register: jenkins_password
+
+    - name: Print initial admin password for Jenkins
+      debug:
+        var: jenkins_password.stdout
