@@ -36,13 +36,6 @@
         name: maven
         state: present
 
-    - name: Upgrade AWS CLI to version 2
-      shell: |
-        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        unzip -o awscliv2.zip
-        sudo ./aws/install
-      args:
-        executable: /bin/bash
 
     - name: Install kubectl
       shell: |
@@ -76,6 +69,3 @@
       command: cat /var/lib/jenkins/secrets/initialAdminPassword
       register: jenkins_password
 
-    - name: Print initial admin password for Jenkins
-      debug:
-        var: jenkins_password.stdout
