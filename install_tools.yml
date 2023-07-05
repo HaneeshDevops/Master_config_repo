@@ -3,6 +3,23 @@
   become: true
   gather_facts: true
   tasks:
+    - name: Install Jenkins
+      yum:
+        name: jenkins
+        state: present
+
+    - name: Enable Jenkins service
+      service:
+        name: jenkins
+        enabled: yes
+        state: started
+
+    - name: Add jenkins user to the docker group
+      user:
+        name: jenkins
+        groups: docker
+        append: yes
+
     - name: Install Docker
       yum:
         name: docker
@@ -36,7 +53,6 @@
         name: maven
         state: present
 
-
     - name: Install kubectl
       shell: |
         curl --silent --location -o /usr/local/bin/kubectl \
@@ -48,24 +64,6 @@
         curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
         mv /tmp/eksctl /usr/local/bin
 
-    - name: Install Jenkins
-      yum:
-        name: jenkins
-        state: present
-
-    - name: Enable Jenkins service
-      service:
-        name: jenkins
-        enabled: yes
-        state: started
-
-    - name: Add jenkins user to the docker group
-      user:
-        name: jenkins
-        groups: docker
-        append: yes
-
     - name: Display initial admin password for Jenkins
       command: cat /var/lib/jenkins/secrets/initialAdminPassword
       register: jenkins_password
-
